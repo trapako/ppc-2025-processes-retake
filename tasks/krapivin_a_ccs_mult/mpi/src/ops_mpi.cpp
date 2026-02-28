@@ -134,5 +134,5 @@ bool KrapivinACcsMultMPI::PostProcessingImpl() {
 
   GetOutput() = std::make_tuple(rows, cols, local_result_);
   return true;
-}  
-} // namespace krapivin_a_ccs_mult
+}
+}  // namespace krapivin_a_ccs_mult

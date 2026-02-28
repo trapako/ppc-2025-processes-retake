@@ -17,8 +17,6 @@ class KrapivinACcsMultSEQ : public BaseTask {
   bool PreProcessingImpl() override;
   bool RunImpl() override;
   bool PostProcessingImpl() override;
-
-  static void PrintCCS(const Ccs &m);
 };
 
 }  // namespace krapivin_a_ccs_mult
