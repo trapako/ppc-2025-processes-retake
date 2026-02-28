@@ -1,6 +1,7 @@
 #include "krapivin_a_ring/mpi/include/ops_mpi.hpp"
 
 #include <mpi.h>
+
 #include <chrono>
 #include <cmath>
 #include <cstddef>
@@ -12,73 +13,73 @@
 namespace krapivin_a_ring {
 
 void KrapivinARingMPI::AddDelay() {
-    auto start_time = std::chrono::steady_clock::now();
-    auto target_duration = std::chrono::milliseconds(200);
+  auto start_time = std::chrono::steady_clock::now();
+  auto target_duration = std::chrono::milliseconds(200);
 
-    volatile double sum = 0.0;
-    const int iterations = 10000;
+  volatile double sum = 0.0;
+  const int iterations = 10000;
 
-    while (std::chrono::steady_clock::now() - start_time < target_duration) {
-        for (int i = 0; i < iterations; ++i) {
-            sum += std::sin(static_cast<double>(i));
-        }
+  while (std::chrono::steady_clock::now() - start_time < target_duration) {
+    for (int i = 0; i < iterations; ++i) {
+      sum += std::sin(static_cast<double>(i));
     }
-    (void)sum;
+  }
+  (void)sum;
 }
 
 bool KrapivinARingMPI::ComputeIsParticipant(int ring_rank, int source, int target) {
-    if (source == target) {
-        return ring_rank == source;
-    }
-    if (source < target) {
-        return (ring_rank >= source && ring_rank <= target);
-    }
-    return (ring_rank >= source || ring_rank <= target);
+  if (source == target) {
+    return ring_rank == source;
+  }
+  if (source < target) {
+    return (ring_rank >= source && ring_rank <= target);
+  }
+  return (ring_rank >= source || ring_rank <= target);
 }
 
 void KrapivinARingMPI::HandleSource(MPI_Comm ring_comm, int ring_rank, int next_rank, int target, int data) {
-    std::vector<int> path_history;
-    path_history.push_back(ring_rank);
-    AddDelay();
-    if (ring_rank == target) {
-        GetOutput() = std::move(path_history);
-        return;
-    }
-    int path_size = static_cast<int>(path_history.size());
-    MPI_Send(&path_size, 1, MPI_INT, next_rank, 0, ring_comm);
-    if (path_size > 0) {
-        MPI_Send(path_history.data(), path_size, MPI_INT, next_rank, 1, ring_comm);
-    }
-    MPI_Send(&data, 1, MPI_INT, next_rank, 2, ring_comm);
+  std::vector<int> path_history;
+  path_history.push_back(ring_rank);
+  AddDelay();
+  if (ring_rank == target) {
+    GetOutput() = std::move(path_history);
+    return;
+  }
+  int path_size = static_cast<int>(path_history.size());
+  MPI_Send(&path_size, 1, MPI_INT, next_rank, 0, ring_comm);
+  if (path_size > 0) {
+    MPI_Send(path_history.data(), path_size, MPI_INT, next_rank, 1, ring_comm);
+  }
+  MPI_Send(&data, 1, MPI_INT, next_rank, 2, ring_comm);
 }
 
 void KrapivinARingMPI::HandleParticipant(MPI_Comm ring_comm, int prev_rank, int next_rank, int ring_rank, int target) {
-    int path_size = 0;
-    MPI_Status status;
-    MPI_Recv(&path_size, 1, MPI_INT, prev_rank, 0, ring_comm, &status);
-    int comm_size = 0;
-    MPI_Comm_size(ring_comm, &comm_size);
-    if (path_size < 0) {
-        path_size = 0;
-    } else if (path_size > comm_size) {
-        path_size = comm_size;
-    }
-    std::vector<int> path_history(static_cast<std::size_t>(path_size));
-    if (path_size > 0) {
-        MPI_Recv(path_history.data(), path_size, MPI_INT, prev_rank, 1, ring_comm, &status);
-    }
-    int received_data = 0;
-    MPI_Recv(&received_data, 1, MPI_INT, prev_rank, 2, ring_comm, &status);
-    AddDelay();
-    path_history.push_back(ring_rank);
-    if (ring_rank == target) {
-        GetOutput() = path_history;
-        return;
-    }
-    path_size = static_cast<int>(path_history.size());
-    MPI_Send(&path_size, 1, MPI_INT, next_rank, 0, ring_comm);
-    MPI_Send(path_history.data(), path_size, MPI_INT, next_rank, 1, ring_comm);
-    MPI_Send(&received_data, 1, MPI_INT, next_rank, 2, ring_comm);
+  int path_size = 0;
+  MPI_Status status;
+  MPI_Recv(&path_size, 1, MPI_INT, prev_rank, 0, ring_comm, &status);
+  int comm_size = 0;
+  MPI_Comm_size(ring_comm, &comm_size);
+  if (path_size < 0) {
+    path_size = 0;
+  } else if (path_size > comm_size) {
+    path_size = comm_size;
+  }
+  std::vector<int> path_history(static_cast<std::size_t>(path_size));
+  if (path_size > 0) {
+    MPI_Recv(path_history.data(), path_size, MPI_INT, prev_rank, 1, ring_comm, &status);
+  }
+  int received_data = 0;
+  MPI_Recv(&received_data, 1, MPI_INT, prev_rank, 2, ring_comm, &status);
+  AddDelay();
+  path_history.push_back(ring_rank);
+  if (ring_rank == target) {
+    GetOutput() = path_history;
+    return;
+  }
+  path_size = static_cast<int>(path_history.size());
+  MPI_Send(&path_size, 1, MPI_INT, next_rank, 0, ring_comm);
+  MPI_Send(path_history.data(), path_size, MPI_INT, next_rank, 1, ring_comm);
+  MPI_Send(&received_data, 1, MPI_INT, next_rank, 2, ring_comm);
 }
 
 KrapivinARingMPI::KrapivinARingMPI(const InType &in) {
