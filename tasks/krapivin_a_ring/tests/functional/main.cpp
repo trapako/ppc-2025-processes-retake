@@ -96,7 +96,9 @@ const auto kFuncTasksList =
     std::tuple_cat(ppc::util::AddFuncTask<KrapivinARingMPI, InType>(kRingTestParams, PPC_SETTINGS_krapivin_a_ring),
                    ppc::util::AddFuncTask<KrapivinARingSEQ, InType>(kRingTestParams, PPC_SETTINGS_krapivin_a_ring));
 
+namespace {
 INSTANTIATE_TEST_SUITE_P(KrapivinARingTests, KrapivinARingFuncTests, ppc::util::TupleToGTestValues(kFuncTasksList),
                          KrapivinARingFuncTests::PrintFuncTestName<KrapivinARingFuncTests>);
+}  // namespace
 
 }  // namespace krapivin_a_ring
