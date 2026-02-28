@@ -3,7 +3,6 @@
 #include <mpi.h>
 
 #include <cstddef>
-#include <iostream>
 #include <tuple>
 #include <vector>
 
@@ -97,7 +96,7 @@ bool KrapivinACcsMultMPI::RunImpl() {
       const int k2 = m1.col_index[row_m2 + 1];
       for (int k = k1; k < k2; ++k) {
         const int row_m1 = m1.row[k];
-        local_result_[static_cast<size_t>(row_m1) * static_cast<size_t>(ncols) + static_cast<size_t>(col)] +=
+        local_result_[(static_cast<size_t>(row_m1) * static_cast<size_t>(ncols)) + static_cast<size_t>(col)] +=
             m1.val[static_cast<size_t>(k)] * m2.val[static_cast<size_t>(j)];
       }
     }

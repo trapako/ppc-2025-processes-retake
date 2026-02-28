@@ -1,7 +1,7 @@
 #include "krapivin_a_ccs_mult/seq/include/ops_seq.hpp"
 
-#include <iostream>
-#include <numeric>
+#include <cstddef>
+#include <tuple>
 #include <vector>
 
 #include "krapivin_a_ccs_mult/common/include/common.hpp"
@@ -40,7 +40,7 @@ bool KrapivinACcsMultSEQ::RunImpl() {
 
   int result_rows = m1.rows;
   int result_cols = m2.cols;
-  std::vector<double> dense(result_rows * result_cols, 0.0);
+  std::vector<double> dense(static_cast<size_t>(result_rows) * static_cast<size_t>(result_cols), 0.0);
 
   for (int col_m2 = 0; col_m2 < m2.cols; col_m2++) {
     int j_start = m2.col_index[col_m2];
@@ -55,7 +55,7 @@ bool KrapivinACcsMultSEQ::RunImpl() {
       for (int k = k_start; k < k_end; k++) {
         int row_result = m1.row[k];
 
-        dense[row_result * result_cols + col_m2] += m1.val[k] * m2.val[j];
+        dense[(row_result * result_cols) + col_m2] += m1.val[k] * m2.val[j];
       }
     }
   }
