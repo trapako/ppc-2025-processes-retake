@@ -1,4 +1,3 @@
-// ops_mpi.hpp
 #pragma once
 
 #include <vector>
@@ -21,13 +20,12 @@ class KrapivinACcsMultMPI : public BaseTask {
   bool RunImpl() override;
   bool PostProcessingImpl() override;
 
-  void PrintCCS(const ccs& m);
-  // Входные матрицы в формате CCS
+  void PrintCCS(const ccs &m);
+
   ccs A_;
   ccs B_;
 
-  // Локальные данные для параллельного умножения
-  std::vector<double> local_result_;    // локальная плотная матрица (A.rows x local_cols_count_)
+  std::vector<double> local_result_;  
 };
 
 }  // namespace krapivin_a_ccs_mult

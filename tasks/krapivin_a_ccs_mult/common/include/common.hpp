@@ -9,12 +9,12 @@
 namespace krapivin_a_ccs_mult {
 
 struct ccs {
-    int rows;
-    int cols;
+  int rows;
+  int cols;
 
-    std::vector<double> val;
-    std::vector<int> row;
-    std::vector<int> col_index;
+  std::vector<double> val;
+  std::vector<int> row;
+  std::vector<int> col_index;
 };
 
 using InType = std::tuple<ccs, ccs>;

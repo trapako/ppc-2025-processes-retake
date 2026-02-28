@@ -14,7 +14,20 @@ KrapivinACcsMultSEQ::KrapivinACcsMultSEQ(const InType &in) {
 }
 
 bool KrapivinACcsMultSEQ::ValidationImpl() {
-  return (std::get<0>(GetInput()).val.size() > 0) && (std::get<1>(GetInput()).val.size() > 0);
+  const auto &m1 = std::get<0>(GetInput());
+  const auto &m2 = std::get<1>(GetInput());
+  if (m1.val.empty() || m2.val.empty()) {
+    return false;
+  }
+  
+  if (m1.cols != m2.rows) {
+    return false;
+  }
+  if (m1.col_index.size() != static_cast<size_t>(m1.cols + 1) ||
+      m2.col_index.size() != static_cast<size_t>(m2.cols + 1)) {
+    return false;
+  }
+  return true;
 }
 
 bool KrapivinACcsMultSEQ::PreProcessingImpl() {
@@ -25,34 +38,49 @@ bool KrapivinACcsMultSEQ::RunImpl() {
   ccs m1 = std::get<0>(GetInput());
   ccs m2 = std::get<1>(GetInput());
 
-  std::vector<double> dense((m1.rows * m2.cols), 0.0);
-  int cols_count = m2.cols;
+  int result_rows = m1.rows;
+  int result_cols = m2.cols;
+  std::vector<double> dense(result_rows * result_cols, 0.0);
 
-  //std::cout << "m2 cols: " << cols_count << "\n";
-  for(int i = 0; i < cols_count; i++) {
-    int j1 = m2.col_index[i];
-    int j2 = m2.col_index[i + 1];
-    int col = i;
+  for (int col_m2 = 0; col_m2 < m2.cols; col_m2++) {
+    int j_start = m2.col_index[col_m2];
+    int j_end = m2.col_index[col_m2 + 1];
 
-    for(int j = j1; j < j2; j++) {
-      int row = m2.row[j];
-      int k1 = m1.col_index[row];
-      int k2 = m1.col_index[row + 1];
-      
-      //std::cout << "col:" <<col << " row: " << row << "\n";
+    for (int j = j_start; j < j_end; j++) {
+      int row_m2 = m2.row[j]; 
 
-      for(int k = k1; k < k2; k++) {
-        //std::cout << "row" << m1.row[k] << " val " << m1.val[k] << "\n";  
-        dense[(m1.row[k] * m2.cols) + col] += m1.val[k] * m2.val[j];
+      int k_start = m1.col_index[row_m2];
+      int k_end = m1.col_index[row_m2 + 1];
+
+      for (int k = k_start; k < k_end; k++) {
+        int row_result = m1.row[k]; 
+
+        dense[row_result * result_cols + col_m2] += m1.val[k] * m2.val[j];
       }
-      //std::cout << "----\n\n";
     }
   }
-  GetOutput() = std::make_tuple(m1.rows, m2.cols, dense);
+
+  GetOutput() = std::make_tuple(result_rows, result_cols, dense);
   return true;
 }
 
 bool KrapivinACcsMultSEQ::PostProcessingImpl() {
   return true;
+}
+
+void KrapivinACcsMultSEQ::PrintCCS(const ccs &m) {
+  std::cout << "val : ";
+  for (size_t i = 0; i < m.val.size(); i++) {
+    std::cout << m.val[i] << " ";
+  }
+  std::cout << "\nrow: ";
+  for (size_t i = 0; i < m.row.size(); i++) {
+    std::cout << m.row[i] << " ";
+  }
+  std::cout << "\ncol_index: ";
+  for (int i = 0; i <= m.cols; i++) {
+    std::cout << m.col_index[i] << " ";
+  }
+  std::cout << "\n";
 }
 }  // namespace krapivin_a_ccs_mult
