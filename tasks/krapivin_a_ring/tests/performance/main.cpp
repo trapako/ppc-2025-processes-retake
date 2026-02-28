@@ -145,8 +145,8 @@ class KrapivinARingPerfTest : public ppc::util::BaseRunPerfTests<InType, OutType
     ASSERT_TRUE(CheckTestOutputData(output_data));
   }
 
-  static void ReceiveAndPrintPerfResult(const std::string &test_name,
-                                        ppc::performance::PerfResults::TypeOfRunning mode, int source_rank) {
+  static void ReceiveAndPrintPerfResult(const std::string &test_name, ppc::performance::PerfResults::TypeOfRunning mode,
+                                        int source_rank) {
     double recv_time = 0.0;
     MPI_Recv(&recv_time, 1, MPI_DOUBLE, source_rank, 12345, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     std::stringstream perf_res_str;
