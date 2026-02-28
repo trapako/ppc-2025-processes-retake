@@ -68,19 +68,4 @@ bool KrapivinACcsMultSEQ::PostProcessingImpl() {
   return true;
 }
 
-void KrapivinACcsMultSEQ::PrintCCS(const Ccs &m) {
-  std::cout << "val : ";
-  for (double val : m.val) {
-    std::cout << val << " ";
-  }
-  std::cout << "\nrow: ";
-  for (int r : m.row) {
-    std::cout << r << " ";
-  }
-  std::cout << "\ncol_index: ";
-  for (int i = 0; i <= m.cols; i++) {
-    std::cout << m.col_index[i] << " ";
-  }
-  std::cout << "\n";
-}
 }  // namespace krapivin_a_ccs_mult
