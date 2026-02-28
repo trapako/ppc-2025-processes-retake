@@ -1,10 +1,10 @@
 #include "krapivin_a_min_vector_elem/seq/include/ops_seq.hpp"
 
-#include <numeric>
+#include <algorithm>
+#include <cstddef>
 #include <vector>
 
 #include "krapivin_a_min_vector_elem/common/include/common.hpp"
-#include "util/include/util.hpp"
 
 namespace krapivin_a_min_vector_elem {
 
@@ -30,9 +30,7 @@ bool KrapivinAMinVectorElemSEQ::RunImpl() {
   int result = GetInput()[0];
 
   for (size_t i = 1; i < GetInput().size(); i++) {
-    if (result > GetInput()[i]) {
-      result = GetInput()[i];
-    }
+    result = std::min(result, GetInput()[i]);
   }
 
   GetOutput() = result;

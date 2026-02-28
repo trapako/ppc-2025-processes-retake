@@ -1,4 +1,6 @@
 #pragma once
+#include <vector>
+
 #include "krapivin_a_min_vector_elem/common/include/common.hpp"
 #include "task/include/task.hpp"
 
@@ -19,7 +21,7 @@ class KrapivinAMinVectorElemMPI : public BaseTask {
 
   void SplitData(std::vector<int> &input, std::vector<int> &send_counts, std::vector<int> &displacements, int rank,
                  int mpi_size);
-  int FindMin(const std::vector<int> &v);
+  static int FindMin(const std::vector<int> &vector);
   void GatherResuts(std::vector<int> &input, int local_res, std::vector<int> &send_counts,
                     std::vector<int> &displacements, int rank, int mpi_size);
 };

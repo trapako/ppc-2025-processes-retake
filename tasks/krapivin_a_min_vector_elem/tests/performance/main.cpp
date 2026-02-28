@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <limits>
 #include <random>
 
@@ -11,7 +12,7 @@
 namespace krapivin_a_min_vector_elem {
 
 class KrapivinAMinVectorElemPerfTest : public ppc::util::BaseRunPerfTests<InType, OutType> {
-  const int k_count_ = 100000;
+  const int k_count_ = 1000000;
   int correct_data_ = 0;
   InType input_data_;
 
@@ -35,9 +36,7 @@ class KrapivinAMinVectorElemPerfTest : public ppc::util::BaseRunPerfTests<InType
 
     for (auto &elem : input_data_) {
       elem = dist(gen);
-      if (elem < min_element) {
-        min_element = elem;
-      }
+      min_element = std::min(elem, min_element);
     }
     correct_data_ = min_element;
   }

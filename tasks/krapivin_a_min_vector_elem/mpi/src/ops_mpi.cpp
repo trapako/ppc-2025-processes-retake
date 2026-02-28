@@ -2,11 +2,11 @@
 
 #include <mpi.h>
 
+#include <algorithm>
 #include <cstddef>
 #include <vector>
 
 #include "krapivin_a_min_vector_elem/common/include/common.hpp"
-#include "util/include/util.hpp"
 
 namespace krapivin_a_min_vector_elem {
 
@@ -97,13 +97,11 @@ void KrapivinAMinVectorElemMPI::SplitData(std::vector<int> &input, std::vector<i
                static_cast<int>(input.size()), MPI_INT, 0, MPI_COMM_WORLD);
 }
 
-int KrapivinAMinVectorElemMPI::FindMin(const std::vector<int> &v) {
-  int result = v[0];
+int KrapivinAMinVectorElemMPI::FindMin(const std::vector<int> &vector) {
+  int result = vector[0];
 
-  for (size_t i = 1; i < v.size(); i++) {
-    if (result > v[i]) {
-      result = v[i];
-    }
+  for (size_t i = 1; i < vector.size(); i++) {
+    result = std::min(result, vector[i]);
   }
 
   return result;

@@ -1,12 +1,13 @@
 #include <gtest/gtest.h>
 #include <stb/stb_image.h>
 
+#include <algorithm>
 #include <array>
+#include <cstddef>
 #include <limits>
 #include <random>
 #include <string>
 #include <tuple>
-#include <vector>
 
 #include "krapivin_a_min_vector_elem/common/include/common.hpp"
 #include "krapivin_a_min_vector_elem/mpi/include/ops_mpi.hpp"
@@ -46,9 +47,7 @@ class KrapivinAMinVectorElemRunFuncTestsProcesses : public ppc::util::BaseRunFun
 
     for (auto &elem : input_data_) {
       elem = dist(gen);
-      if (elem < min_element) {
-        min_element = elem;
-      }
+      min_element = std::min(elem, min_element);
     }
     correct_data_ = min_element;
   }
