@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
-#include <array>
-#include <limits>
+#include <cmath>
+#include <cstddef>
 #include <random>
-#include <string>
+#include <stdexcept>
 #include <tuple>
 #include <vector>
 
@@ -27,8 +27,8 @@ class KrapivinACcsMultPerfTest : public ppc::util::BaseRunPerfTests<InType, OutT
     correct_data_ = MultDense(static_cast<int>(k_size_), static_cast<int>(k_size_), first, static_cast<int>(k_size_),
                               static_cast<int>(k_size_), second);
 
-    ccs test_m1 = ConvertDense(k_size_, k_size_, first);
-    ccs test_m2 = ConvertDense(k_size_, k_size_, second);
+    Ccs test_m1 = ConvertDense(k_size_, k_size_, first);
+    Ccs test_m2 = ConvertDense(k_size_, k_size_, second);
 
     input_data_ = std::make_tuple(test_m1, test_m2);
   }
@@ -39,7 +39,7 @@ class KrapivinACcsMultPerfTest : public ppc::util::BaseRunPerfTests<InType, OutT
     std::vector<double> task_res = std::get<2>(output_data);
     return CompareDenseResults(rows, cols, correct_data_, task_res);
   }
-  std::vector<double> GenerateDenseMatrix(size_t rows, size_t cols, double percent, int seed) {
+  static std::vector<double> GenerateDenseMatrix(size_t rows, size_t cols, double percent, int seed) {
     std::vector<double> dense(rows * cols, 0.0);
     std::mt19937 gen(seed);
     std::uniform_real_distribution<> r_dist;
@@ -52,8 +52,8 @@ class KrapivinACcsMultPerfTest : public ppc::util::BaseRunPerfTests<InType, OutT
 
     int created_el = 0;
     while (created_el < el_count) {
-      size_t row = static_cast<size_t>(row_dist(gen));
-      size_t col = static_cast<size_t>(col_dist(gen));
+      auto row = static_cast<size_t>(row_dist(gen));
+      auto col = static_cast<size_t>(col_dist(gen));
 
       if (dense[(cols * row) + col] == 0.0) {
         dense[(cols * row) + col] = r_dist(gen);
@@ -64,12 +64,12 @@ class KrapivinACcsMultPerfTest : public ppc::util::BaseRunPerfTests<InType, OutT
     return dense;
   }
 
-  std::vector<double> MultDense(int rows1, int cols1, const std::vector<double> &m1, int rows2, int cols2,
-                                const std::vector<double> &m2) {
+  static std::vector<double> MultDense(int rows1, int cols1, const std::vector<double> &m1, int rows2, int cols2,
+                                       const std::vector<double> &m2) {
     if (rows2 != cols1) {
       throw std::runtime_error("cant multiplicate matrix");
     }
-    std::vector<double> result(rows1 * cols2);
+    std::vector<double> result(static_cast<size_t>(rows1) * static_cast<size_t>(cols2));
 
     for (int i = 0; i < rows1; i++) {
       for (int j = 0; j < cols2; j++) {
@@ -82,8 +82,8 @@ class KrapivinACcsMultPerfTest : public ppc::util::BaseRunPerfTests<InType, OutT
     return result;
   }
 
-  ccs ConvertDense(size_t rows, size_t cols, const std::vector<double> &dense) {
-    ccs result;
+  static Ccs ConvertDense(size_t rows, size_t cols, const std::vector<double> &dense) {
+    Ccs result;
     result.rows = static_cast<int>(rows);
     result.cols = static_cast<int>(cols);
     result.col_index.resize(cols + 1);
@@ -101,8 +101,8 @@ class KrapivinACcsMultPerfTest : public ppc::util::BaseRunPerfTests<InType, OutT
     return result;
   }
 
-  bool CompareDenseResults(int rows, int cols, const std::vector<double> &expected, const std::vector<double> &actual,
-                           double eps = 1e-5) {
+  static bool CompareDenseResults(int rows, int cols, const std::vector<double> &expected,
+                                  const std::vector<double> &actual, double eps = 1e-5) {
     for (int i = 0; i < rows; i++) {
       for (int j = 0; j < cols; j++) {
         int ind = (i * cols) + j;

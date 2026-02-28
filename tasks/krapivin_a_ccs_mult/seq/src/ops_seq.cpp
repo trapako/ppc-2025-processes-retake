@@ -1,10 +1,10 @@
 #include "krapivin_a_ccs_mult/seq/include/ops_seq.hpp"
 
+#include <iostream>
 #include <numeric>
 #include <vector>
 
 #include "krapivin_a_ccs_mult/common/include/common.hpp"
-#include "util/include/util.hpp"
 
 namespace krapivin_a_ccs_mult {
 
@@ -19,12 +19,12 @@ bool KrapivinACcsMultSEQ::ValidationImpl() {
   if (m1.val.empty() || m2.val.empty()) {
     return false;
   }
-  
+
   if (m1.cols != m2.rows) {
     return false;
   }
-  if (m1.col_index.size() != static_cast<size_t>(m1.cols + 1) ||
-      m2.col_index.size() != static_cast<size_t>(m2.cols + 1)) {
+  if (m1.col_index.size() != static_cast<size_t>(m1.cols) + 1 ||
+      m2.col_index.size() != static_cast<size_t>(m2.cols) + 1) {
     return false;
   }
   return true;
@@ -35,8 +35,8 @@ bool KrapivinACcsMultSEQ::PreProcessingImpl() {
 }
 
 bool KrapivinACcsMultSEQ::RunImpl() {
-  ccs m1 = std::get<0>(GetInput());
-  ccs m2 = std::get<1>(GetInput());
+  Ccs m1 = std::get<0>(GetInput());
+  Ccs m2 = std::get<1>(GetInput());
 
   int result_rows = m1.rows;
   int result_cols = m2.cols;
@@ -47,13 +47,13 @@ bool KrapivinACcsMultSEQ::RunImpl() {
     int j_end = m2.col_index[col_m2 + 1];
 
     for (int j = j_start; j < j_end; j++) {
-      int row_m2 = m2.row[j]; 
+      int row_m2 = m2.row[j];
 
       int k_start = m1.col_index[row_m2];
       int k_end = m1.col_index[row_m2 + 1];
 
       for (int k = k_start; k < k_end; k++) {
-        int row_result = m1.row[k]; 
+        int row_result = m1.row[k];
 
         dense[row_result * result_cols + col_m2] += m1.val[k] * m2.val[j];
       }
@@ -68,14 +68,14 @@ bool KrapivinACcsMultSEQ::PostProcessingImpl() {
   return true;
 }
 
-void KrapivinACcsMultSEQ::PrintCCS(const ccs &m) {
+void KrapivinACcsMultSEQ::PrintCCS(const Ccs &m) {
   std::cout << "val : ";
-  for (size_t i = 0; i < m.val.size(); i++) {
-    std::cout << m.val[i] << " ";
+  for (double val : m.val) {
+    std::cout << val << " ";
   }
   std::cout << "\nrow: ";
-  for (size_t i = 0; i < m.row.size(); i++) {
-    std::cout << m.row[i] << " ";
+  for (int r : m.row) {
+    std::cout << r << " ";
   }
   std::cout << "\ncol_index: ";
   for (int i = 0; i <= m.cols; i++) {

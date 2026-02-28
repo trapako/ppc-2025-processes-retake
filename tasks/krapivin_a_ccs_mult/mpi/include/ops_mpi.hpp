@@ -20,12 +20,10 @@ class KrapivinACcsMultMPI : public BaseTask {
   bool RunImpl() override;
   bool PostProcessingImpl() override;
 
-  void PrintCCS(const ccs &m);
+  Ccs A_;
+  Ccs B_;
 
-  ccs A_;
-  ccs B_;
-
-  std::vector<double> local_result_;  
+  std::vector<double> local_result_;
 };
 
 }  // namespace krapivin_a_ccs_mult
