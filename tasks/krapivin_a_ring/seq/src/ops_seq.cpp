@@ -1,7 +1,6 @@
 #include "krapivin_a_ring/seq/include/ops_seq.hpp"
 
 #include <mpi.h>
-
 #include <chrono>
 #include <cmath>
 #include <vector>

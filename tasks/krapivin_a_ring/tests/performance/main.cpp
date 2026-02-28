@@ -1,9 +1,8 @@
 #include <gtest/gtest.h>
-#include <mpi.h>
 
+#include <mpi.h>
 #include <chrono>
 #include <cstddef>
-#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -112,72 +111,63 @@ class KrapivinARingPerfTest : public ppc::util::BaseRunPerfTests<InType, OutType
     return input_data_;
   }
 
-  void RunPerfAndReport(const std::function<ppc::task::TaskPtr<InType, OutType>(InType)> &task_getter,
-                        const std::string &test_name, ppc::performance::PerfResults::TypeOfRunning mode) {
-    auto task = task_getter(GetTestInputData());
-    ppc::performance::Perf<InType, OutType> perf(task);
-    ppc::performance::PerfAttr perf_attr;
-
-    const auto t0 = std::chrono::high_resolution_clock::now();
-    perf_attr.current_timer = [t0] {
-      auto now = std::chrono::high_resolution_clock::now();
-      auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now - t0).count();
-      return static_cast<double>(ns) * 1e-9;
-    };
-
-    if (mode == ppc::performance::PerfResults::TypeOfRunning::kPipeline) {
-      perf.PipelineRun(perf_attr);
-    } else {
-      perf.TaskRun(perf_attr);
-    }
-
-    int mpi_rank = 0;
-    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-    double time_to_report = perf.GetPerfResults().time_sec;
-    if (mpi_rank == 0) {
-      perf.PrintPerfStatistic(test_name);
-    } else {
-      MPI_Send(&time_to_report, 1, MPI_DOUBLE, 0, 12345, MPI_COMM_WORLD);
-    }
-
-    OutType output_data = task->GetOutput();
-    ASSERT_TRUE(CheckTestOutputData(output_data));
-  }
-
-  void ReceiveAndPrintPerfResult(const std::string &test_name, ppc::performance::PerfResults::TypeOfRunning mode,
-                                 int source_rank) {
-    double recv_time = 0.0;
-    MPI_Recv(&recv_time, 1, MPI_DOUBLE, source_rank, 12345, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    std::stringstream perf_res_str;
-    perf_res_str << std::fixed << std::setprecision(10) << recv_time;
-    std::string type_test_name =
-        (mode == ppc::performance::PerfResults::TypeOfRunning::kTaskRun) ? "task_run" : "pipeline";
-    std::cout << test_name << ":" << type_test_name << ":" << perf_res_str.str() << '\n';
-  }
-
- protected:
+protected:
   void ExecuteTest(const ppc::util::PerfTestParam<InType, OutType> &perf_test_param) {
     auto task_getter = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTaskGetter)>(perf_test_param);
     auto test_name = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kNameTest)>(perf_test_param);
     auto mode = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(perf_test_param);
 
-    if (!ppc::util::IsUnderMpirun() || !is_seq_test_) {
+    if (ppc::util::IsUnderMpirun() && is_seq_test_) {
+      int mpi_rank = 0;
+      int mpi_size = 1;
+      MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+      MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+
+      int normalized_target = (mpi_size > 0) ? (input_data_.target_rank % mpi_size) : input_data_.target_rank;
+
+      if (mpi_rank == normalized_target) {
+        auto task = task_getter(GetTestInputData());
+        ppc::performance::Perf<InType, OutType> perf(task);
+        ppc::performance::PerfAttr perf_attr;
+
+        const auto t0 = std::chrono::high_resolution_clock::now();
+        perf_attr.current_timer = [t0] {
+          auto now = std::chrono::high_resolution_clock::now();
+          auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now - t0).count();
+          return static_cast<double>(ns) * 1e-9;
+        };
+
+        if (mode == ppc::performance::PerfResults::TypeOfRunning::kPipeline) {
+          perf.PipelineRun(perf_attr);
+        } else if (mode == ppc::performance::PerfResults::TypeOfRunning::kTaskRun) {
+          perf.TaskRun(perf_attr);
+        }
+
+        double time_to_report = perf.GetPerfResults().time_sec;
+        if (mpi_rank == 0) {
+          perf.PrintPerfStatistic(test_name);
+        } else {
+          MPI_Send(&time_to_report, 1, MPI_DOUBLE, 0, 12345, MPI_COMM_WORLD);
+        }
+
+        OutType output_data = task->GetOutput();
+        ASSERT_TRUE(CheckTestOutputData(output_data));
+      } else {
+        if (mpi_rank == 0) {
+          double recv_time = 0.0;
+          MPI_Recv(&recv_time, 1, MPI_DOUBLE, normalized_target, 12345, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          std::stringstream perf_res_str;
+          perf_res_str << std::fixed << std::setprecision(10) << recv_time;
+          std::string type_test_name =
+              (mode == ppc::performance::PerfResults::TypeOfRunning::kTaskRun) ? "task_run" : "pipeline";
+          std::cout << test_name << ":" << type_test_name << ":" << perf_res_str.str() << '\n';
+        }
+      }
+
+    } else {
       BaseRunPerfTests<InType, OutType>::ExecuteTest(perf_test_param);
-      return;
     }
-
-    int mpi_rank = 0;
-    int mpi_size = 1;
-    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-    int normalized_target = (mpi_size > 0) ? (input_data_.target_rank % mpi_size) : input_data_.target_rank;
-
-    if (mpi_rank == normalized_target) {
-      RunPerfAndReport(task_getter, test_name, mode);
-    } else if (mpi_rank == 0) {
-      ReceiveAndPrintPerfResult(test_name, mode, normalized_target);
-    }
-  }
+  }  
 };
 
 TEST_P(KrapivinARingPerfTest, RunPerfModes) {
@@ -191,8 +181,6 @@ const auto kGtestValues = ppc::util::TupleToGTestValues(kAllPerfTasks);
 
 const auto kPerfTestName = KrapivinARingPerfTest::CustomPerfTestName;
 
-namespace {
 INSTANTIATE_TEST_SUITE_P(RunModeTests, KrapivinARingPerfTest, kGtestValues, kPerfTestName);
-}  // namespace
 
 }  // namespace krapivin_a_ring
