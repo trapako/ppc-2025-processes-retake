@@ -23,7 +23,7 @@ class KrapivinARingMPI : public BaseTask {
   // Добавляем приватные методы
   void HandleSource(MPI_Comm ring_comm, int ring_rank, int next_rank, int target, int data);
   void HandleParticipant(MPI_Comm ring_comm, int prev_rank, int next_rank, int ring_rank, int target);
-  
+
   // Статические вспомогательные функции
   static void AddDelay();
   static bool ComputeIsParticipant(int ring_rank, int source, int target);

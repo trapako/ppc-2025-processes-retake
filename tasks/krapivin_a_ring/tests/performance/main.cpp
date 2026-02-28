@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-
 #include <mpi.h>
+
 #include <chrono>
 #include <cstddef>
 #include <iomanip>
@@ -111,7 +111,7 @@ class KrapivinARingPerfTest : public ppc::util::BaseRunPerfTests<InType, OutType
     return input_data_;
   }
 
-protected:
+ protected:
   void ExecuteTest(const ppc::util::PerfTestParam<InType, OutType> &perf_test_param) {
     auto task_getter = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTaskGetter)>(perf_test_param);
     auto test_name = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kNameTest)>(perf_test_param);
@@ -167,7 +167,7 @@ protected:
     } else {
       BaseRunPerfTests<InType, OutType>::ExecuteTest(perf_test_param);
     }
-  }  
+  }
 };
 
 TEST_P(KrapivinARingPerfTest, RunPerfModes) {

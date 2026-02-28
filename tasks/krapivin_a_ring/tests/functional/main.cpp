@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-
 #include <mpi.h>
+
 #include <array>
 #include <string>
 #include <tuple>
@@ -88,15 +88,15 @@ TEST_P(KrapivinARingFuncTests, RingPathVerification) {
 }
 
 const std::array<FuncTestType, 5> kRingTestParams = {
-  FuncTestType({100, 0, 2}, "ForwardShort"), FuncTestType({200, 2, 0}, "WrapAround"),
-  FuncTestType({300, 1, 1}, "SelfDelivery"), FuncTestType({400, 0, 3}, "LongPath"),
-  FuncTestType({500, 3, 2}, "AlmostFullCircle")
-};
+    FuncTestType({100, 0, 2}, "ForwardShort"), FuncTestType({200, 2, 0}, "WrapAround"),
+    FuncTestType({300, 1, 1}, "SelfDelivery"), FuncTestType({400, 0, 3}, "LongPath"),
+    FuncTestType({500, 3, 2}, "AlmostFullCircle")};
 
 const auto kFuncTasksList =
     std::tuple_cat(ppc::util::AddFuncTask<KrapivinARingMPI, InType>(kRingTestParams, PPC_SETTINGS_krapivin_a_ring),
                    ppc::util::AddFuncTask<KrapivinARingSEQ, InType>(kRingTestParams, PPC_SETTINGS_krapivin_a_ring));
 
-INSTANTIATE_TEST_SUITE_P(KrapivinARingTests, KrapivinARingFuncTests, ppc::util::TupleToGTestValues(kFuncTasksList), KrapivinARingFuncTests::PrintFuncTestName<KrapivinARingFuncTests>);
+INSTANTIATE_TEST_SUITE_P(KrapivinARingTests, KrapivinARingFuncTests, ppc::util::TupleToGTestValues(kFuncTasksList),
+                         KrapivinARingFuncTests::PrintFuncTestName<KrapivinARingFuncTests>);
 
 }  // namespace krapivin_a_ring
